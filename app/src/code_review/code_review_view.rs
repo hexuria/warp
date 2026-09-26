@@ -4248,22 +4248,24 @@ impl CodeReviewView {
 
         if let Some(repo_path) = self.repo_path() {
             // Check for initialized rules
-            if let Some(rules) = ProjectContextModel::as_ref(app).find_applicable_rules(repo_path) {
-                if let Some(first_rule) = rules.active_rules.first() {
-                    if let Some(file_name) = first_rule.path.file_name().and_then(|n| n.to_str()) {
-                        zero_state_column.add_child(
-                            Container::new(
-                                Text::new(
-                                    format!("Repo is initialized with a {file_name} file."),
-                                    appearance.ui_font_family(),
-                                    12.,
+            if AISettings::as_ref(app).is_project_rules_enabled(app) {
+                if let Some(rules) = ProjectContextModel::as_ref(app).find_applicable_rules(repo_path) {
+                    if let Some(first_rule) = rules.active_rules.first() {
+                        if let Some(file_name) = first_rule.path.file_name().and_then(|n| n.to_str()) {
+                            zero_state_column.add_child(
+                                Container::new(
+                                    Text::new(
+                                        format!("Repo is initialized with a {file_name} file."),
+                                        appearance.ui_font_family(),
+                                        12.,
+                                    )
+                                    .with_color(theme.sub_text_color(theme.surface_2()).into())
+                                    .finish(),
                                 )
-                                .with_color(theme.sub_text_color(theme.surface_2()).into())
+                                .with_margin_top(8.)
                                 .finish(),
-                            )
-                            .with_margin_top(8.)
-                            .finish(),
-                        );
+                            );
+                        }
                     }
                 }
             }

@@ -668,17 +668,21 @@ impl BlocklistAIContextModel {
         // 可选择“使用代码库语义搜索”作为上下文。现 outline 已下线,总是为 false。
         let is_pwd_indexed = false;
 
-        let project_rules = if let Some(pwd) = pwd.clone().and_then(|path| {
-            PathBuf::from_str(&path)
-                .ok()
-                .and_then(|s| s.canonicalize().ok())
-        }) {
-            // 优先走正常路径(零 IO,异步索引完成后从 HashMap 拿结果);
-            // 未就绪时同步 fast-path stat + 读 cwd/祖先目录的规则文件。
-            // 对齐 opencode `findUp` 模式,保证 cd 后立即发问也能拿到 AGENTS.md 。
-            // fast-path 内部有 cache + 时间预算,UI 绝不阻塞。详见
-            // `crates/ai/src/project_context/model.rs::find_rules_with_fast_path`。
-            ProjectContextModel::as_ref(app).find_rules_with_fast_path(&pwd)
+        let project_rules = if crate::settings::ai::AISettings::as_ref(app).is_project_rules_enabled(app) {
+            if let Some(pwd) = pwd.clone().and_then(|path| {
+                PathBuf::from_str(&path)
+                    .ok()
+                    .and_then(|s| s.canonicalize().ok())
+            }) {
+                // 优先走正常路径(零 IO,异步索引完成后从 HashMap 拿结果);
+                // 未就绪时同步 fast-path stat + 读 cwd/祖先目录的规则文件。
+                // 对齐 opencode `findUp` 模式,保证 cd 后立即发问也能拿到 AGENTS.md 。
+                // fast-path 内部有 cache + 时间预算,UI 绝不阻塞。详见
+                // `crates/ai/src/project_context/model.rs::find_rules_with_fast_path`。
+                ProjectContextModel::as_ref(app).find_rules_with_fast_path(&pwd)
+            } else {
+                None
+            }
         } else {
             None
         };

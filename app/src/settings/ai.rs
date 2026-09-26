@@ -1493,6 +1493,16 @@ define_settings_group!(AISettings, settings: [
         toml_path: "agents.knowledge.warp_drive_context_enabled",
         description: "Whether Warp Drive context is included in AI requests.",
     }
+    // Whether or not the user wants agent mode requests to use workspace-level rules files (e.g. AGENTS.md).
+    project_rules_enabled: ProjectRulesEnabled {
+        type: bool,
+        default: true,
+        supported_platforms: SupportedPlatforms::ALL,
+        sync_to_cloud: SyncToCloud::Globally(RespectUserSyncSetting::Yes),
+        private: false,
+        toml_path: "agents.knowledge.project_rules_enabled",
+        description: "Whether the agent uses workspace/project rules files (like AGENTS.md) during requests.",
+    }
 
     // Whether the agent mode setup banner has been shown for a given repo path.
     // Once shown, it will not be shown again for that repo.
@@ -2044,6 +2054,10 @@ impl AISettings {
 
     pub fn is_warp_drive_context_enabled(&self, app: &warpui::AppContext) -> bool {
         self.is_any_ai_enabled(app) && *self.warp_drive_context_enabled
+    }
+
+    pub fn is_project_rules_enabled(&self, app: &warpui::AppContext) -> bool {
+        self.is_any_ai_enabled(app) && *self.project_rules_enabled
     }
 
     pub fn is_file_based_mcp_enabled(&self, app: &warpui::AppContext) -> bool {
